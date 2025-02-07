@@ -1,0 +1,149 @@
+namespace ConsoleApp11
+{
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            int[] masalar = new int[7]; // 7 masa (0: boş, 1: dolu)
+            string[,] siparisler = new string[7, 10]; // 7 masa için max 10 sipariş saklayabilir
+            double[] fiyatlar = new double[7]; // Her masanın toplam fiyatı
+            Random rastgele = new Random();
+
+            // Masaları rastgele boş/dolu yap (hepsi dolu olmasın)
+            int doluMasaSayisi = rastgele.Next(1, 7);
+            for (int i = 0; i < doluMasaSayisi; i++)
+            {
+                int masaIndex;
+                do
+                {
+                    masaIndex = rastgele.Next(0, 7);
+                } while (masalar[masaIndex] == 1);
+
+                masalar[masaIndex] = 1;
+            }
+
+            while (true)
+            {
+                Console.WriteLine("\n--- Ana Menü ---");
+                Console.WriteLine("1. Masa Aç");
+                Console.WriteLine("2. Masa İşlem");
+                Console.WriteLine("3. Masa Hesap");
+                Console.WriteLine("0. Çıkış");
+                Console.Write("Seçiminiz: ");
+                int secim = int.Parse(Console.ReadLine());
+
+                if (secim == 0) break;
+                else if (secim == 1) MasaAc(masalar);
+                else if (secim == 2) MasaIslem(masalar, siparisler, fiyatlar);
+                else if (secim == 3) MasaHesap(masalar, siparisler, fiyatlar);
+                else Console.WriteLine("Geçersiz seçim.");
+            }
+        }
+
+        static void MasaAc(int[] masalar)
+        {
+            Console.WriteLine("\n--- Masalar ---");
+            for (int i = 0; i < 7; i++)
+            {
+                Console.WriteLine((i + 1) + ". Masa: " + (masalar[i] == 0 ? "[Boş]" : "[Dolu]"));
+            }
+
+            Console.Write("Açmak istediğiniz masa numarasını girin (1-7): ");
+            int masaNo = int.Parse(Console.ReadLine());
+
+            if (masaNo >= 1 && masaNo <= 7)
+            {
+                if (masalar[masaNo - 1] == 0)
+                {
+                    masalar[masaNo - 1] = 1;
+                    Console.WriteLine(masaNo + ". Masa açıldı.");
+                }
+                else Console.WriteLine(masaNo + ". Masa zaten dolu.");
+            }
+            else Console.WriteLine("Geçersiz masa numarası.");
+        }
+
+        static void MasaIslem(int[] masalar, string[,] siparisler, double[] fiyatlar)
+        {
+            Console.Write("İşlem yapmak istediğiniz masa numarasını girin (1-7): ");
+            int masaNo = int.Parse(Console.ReadLine());
+
+            if (masaNo < 1 || masaNo > 7 || masalar[masaNo - 1] == 0)
+            {
+                Console.WriteLine("Geçersiz masa numarası veya masa açık değil.");
+                return;
+            }
+
+            string[] yemekler = { "Pizza", "Tavuk", "Makarna", "Balık", "Salata" };
+            double[] yemekFiyat = { 20, 25, 18, 30, 15 };
+            string[] icecekler = { "Kola", "Ayran", "Su", "Kahve", "Çay" };
+            double[] icecekFiyat = { 5, 4, 2, 7, 3 };
+
+            Console.WriteLine("\n--- Menü ---");
+            for (int i = 0; i < yemekler.Length; i++)
+            {
+                Console.WriteLine((i + 1) + ". " + yemekler[i] + " - " + yemekFiyat[i] + " TL");
+            }
+            for (int i = 0; i < icecekler.Length; i++)
+            {
+                Console.WriteLine((i + 6) + ". " + icecekler[i] + " - " + icecekFiyat[i] + " TL");
+            }
+
+            Console.Write("Siparişlerinizi seçin (örn: 1+3+6): ");
+            string[] secimler = Console.ReadLine().Split('+');
+            double toplamTutar = 0;
+            int siparisIndex = 0;
+
+            for (int i = 0; i < secimler.Length; i++)
+            {
+                int urunNo = int.Parse(secimler[i]);
+                if (urunNo >= 1 && urunNo <= 10)
+                {
+                    Console.Write(urunNo + " numaralı üründen kaç adet? ");
+                    int adet = int.Parse(Console.ReadLine());
+
+                    string urunAdi = urunNo <= 5 ? yemekler[urunNo - 1] : icecekler[urunNo - 6];
+                    double fiyat = urunNo <= 5 ? yemekFiyat[urunNo - 1] : icecekFiyat[urunNo - 6];
+
+                    siparisler[masaNo - 1, siparisIndex] = urunAdi + " x" + adet;
+                    siparisIndex++;
+                    toplamTutar += fiyat * adet;
+                }
+                else Console.WriteLine("Geçersiz ürün numarası.");
+            }
+
+            fiyatlar[masaNo - 1] += toplamTutar;
+            Console.WriteLine("Toplam Sipariş Ücreti: " + toplamTutar + " TL");
+        }
+
+        static void MasaHesap(int[] masalar, string[,] siparisler, double[] fiyatlar)
+        {
+            Console.Write("Hesap almak istediğiniz masa numarasını girin (1-7): ");
+            int masaNo = int.Parse(Console.ReadLine());
+
+            if (masaNo < 1 || masaNo > 7 || masalar[masaNo - 1] == 0)
+            {
+                Console.WriteLine("Geçersiz masa numarası veya masa açık değil.");
+                return;
+            }
+
+            Console.WriteLine("\n--- Siparişler ---");
+            for (int i = 0; i < 10; i++)
+            {
+                if (!string.IsNullOrEmpty(siparisler[masaNo - 1, i]))
+                {
+                    Console.WriteLine(siparisler[masaNo - 1, i]);
+                }
+            }
+
+            Console.WriteLine("Toplam Tutar: " + fiyatlar[masaNo - 1] + " TL");
+            Console.WriteLine(masaNo + ". Masa hesabı kapatıldı.");
+
+            // Masayı boşalt
+            masalar[masaNo - 1] = 0;
+            fiyatlar[masaNo - 1] = 0;
+            for (int i = 0; i < 10; i++) siparisler[masaNo - 1, i] = null;
+        
+}
+    }
+}
